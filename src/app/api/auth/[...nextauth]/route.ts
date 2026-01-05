@@ -1,5 +1,6 @@
 import NextAuth from "next-auth";
 import CredentialsProvider from "next-auth/providers/credentials";
+import prisma from "@/lib/prisma";
 
 export const authOptions = {
     providers: [
@@ -10,9 +11,14 @@ export const authOptions = {
                 password: { label: "Password", type: "password" }
             },
             async authorize(credentials) {
-                // This is a simulation for NovaCommerce
-                if (credentials?.email === "admin@nova.com" && credentials?.password === "password123") {
-                    return { id: "1", name: "Nova Merchant", email: "admin@nova.com" };
+                if (!credentials?.email || !credentials?.password) return null;
+
+                const user = await prisma.user.findUnique({
+                    where: { email: credentials.email }
+                });
+
+                if (user && user.password === credentials.password) {
+                    return { id: user.id, name: user.name, email: user.email };
                 }
                 return null;
             }

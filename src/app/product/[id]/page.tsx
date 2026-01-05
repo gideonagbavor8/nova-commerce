@@ -1,7 +1,7 @@
 'use client';
 
 import { useParams, useRouter } from "next/navigation";
-import { products } from "@/lib/products";
+import { useState, useEffect } from "react";
 import { useCart } from "@/app/context/CartContext";
 import React from "react";
 
@@ -9,8 +9,21 @@ export default function ProductPage() {
     const params = useParams();
     const router = useRouter();
     const { addToCart } = useCart();
+    const [product, setProduct] = useState<any>(null);
+    const [loading, setLoading] = useState(true);
 
-    const product = products.find(p => p.id === params.id);
+    useEffect(() => {
+        fetch('/api/products')
+            .then(res => res.json())
+            .then(data => {
+                const found = data.find((p: any) => p.id === params.id);
+                setProduct(found);
+                setLoading(false);
+            })
+            .catch(() => setLoading(false));
+    }, [params.id]);
+
+    if (loading) return <div className="container section-padding">Loading product...</div>;
 
     if (!product) {
         return (

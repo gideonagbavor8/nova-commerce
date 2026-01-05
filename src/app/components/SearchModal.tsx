@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { products, Product } from '@/lib/products';
 import Link from 'next/link';
 
 interface SearchModalProps {
@@ -11,11 +10,20 @@ interface SearchModalProps {
 
 export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
     const [query, setQuery] = useState('');
-    const [results, setResults] = useState<Product[]>([]);
+    const [results, setResults] = useState<any[]>([]);
+    const [allProducts, setAllProducts] = useState<any[]>([]);
+
+    useEffect(() => {
+        if (isOpen) {
+            fetch('/api/products')
+                .then(res => res.json())
+                .then(data => setAllProducts(data));
+        }
+    }, [isOpen]);
 
     useEffect(() => {
         if (query.trim().length > 1) {
-            const filtered = products.filter(p =>
+            const filtered = allProducts.filter((p: any) =>
                 p.name.toLowerCase().includes(query.toLowerCase()) ||
                 p.category.toLowerCase().includes(query.toLowerCase())
             );
@@ -23,7 +31,7 @@ export default function SearchModal({ isOpen, onClose }: SearchModalProps) {
         } else {
             setResults([]);
         }
-    }, [query]);
+    }, [query, allProducts]);
 
     if (!isOpen) return null;
 
